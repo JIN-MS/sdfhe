@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>정확한 영어 점자 변환기</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: #fafafa;
+  }
+  h1 {
+    margin-bottom: 15px;
+  }
+  #brailleContainer {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .brailleChar {
+    display: grid;
+    grid-template-columns: repeat(2, 40px);
+    grid-template-rows: repeat(3, 40px);
+    gap: 8px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 5px #ccc;
+    user-select: none;
+  }
+  .dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ddd;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+  }
+  .dot.active {
+    background-color: black;
+    color: white;
+  }
+  button {
+    font-size: 18px;
+    padding: 10px 25px;
+    margin-right: 15px;
+    cursor: pointer;
+  }
+  .result {
+    margin-top: 25px;
+    font-size: 36px;
+    font-weight: bold;
+    min-height: 40px;
+    color: #333;
+  }
+</style>
+</head>
+<body>
+
+<h1>영어 점자 입력기 (3x2 점 6개)</h1>
+<div id="instructions">
+  ● 점을 클릭하여 토글하세요.<br>
+  ● 6글자 점자를 영어 알파벳으로 변환합니다.
+</div>
+
+<div id="brailleContainer"></div>
+
+<button onclick="convertAll()">변환하기</button>
+<button onclick="resetAll()">초기화</button>
+
+<div class="result" id="result"></div>
+
+<script>
+  // 점 번호 배열 순서: dot1, dot2, dot3, dot4, dot5, dot6
+  // 점자 코드는 6자리 0/1 문자열 (1은 점 켜짐, 0은 점 꺼짐)
+  const ENGLISH_BRAILLE_MAP = {
+    '100000': 'A', '101000': 'B', '110000': 'C', '110100': 'D', '100100': 'E',
+    '111000': 'F', '111100': 'G', '101100': 'H', '011000': 'I', '011100': 'J',
+    '100010': 'K', '101010': 'L', '110010': 'M', '110110': 'N', '100110': 'O',
+    '111010': 'P', '111110': 'Q', '101110': 'R', '011010': 'S', '011110': 'T',
+    '100011': 'U', '101011': 'V', '011101': 'W', '110011': 'X', '110111': 'Y',
+    '100111': 'Z'
+  };
+
+  const brailleContainer = document.getElementById('brailleContainer');
+
+  // 6개 점자 글자 생성
+  for(let i=0; i<6; i++) {
+    const brailleChar = document.createElement('div');
+    brailleChar.classList.add('brailleChar');
+    brailleChar.dataset.charIndex = i;
+
+    for(let j=0; j<6; j++) {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      dot.dataset.dotIndex = j;
+      dot.textContent = '○';
+      dot.addEventListener('click', () => {
+        dot.classList.toggle('active');
+        dot.textContent = dot.classList.contains('active') ? '●' : '○';
+      });
+      brailleChar.appendChild(dot);
+    }
+    brailleContainer.appendChild(brailleChar);
+  }
+
+  // 점자 dots 배열 → '100000' 문자열 변환
+  function dotsToBinary(dotElements) {
+    return Array.from(dotElements).map(dot => dot.classList.contains('active') ? '1' : '0').join('');
+  }
+
+  function convertAll() {
+    const chars = brailleContainer.querySelectorAll('.brailleChar');
+    let result = '';
+
+    chars.forEach(char => {
+      const dots = char.querySelectorAll('.dot');
+      const code = dotsToBinary(dots);
+      if (ENGLISH_BRAILLE_MAP[code]) {
+        result += ENGLISH_BRAILLE_MAP[code];
+      } else {
+        result += '?'; // 미등록 점자 표시
+      }
+    });
+
+    document.getElementById('result').textContent = result;
+  }
+
+  function resetAll() {
+    document.querySelectorAll('.dot').forEach(dot => {
+      dot.classList.remove('active');
+      dot.textContent = '○';
+    });
+    document.getElementById('result').textContent = '';
+  }
+</script>
+
+</body>
+</html>
